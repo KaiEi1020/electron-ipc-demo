@@ -1,34 +1,47 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import { useState } from 'react'
+
+interface AppInfo {
+  appVersion: string
+  electronVersion: string
+  nodeVersion: string
+  platform: string
+}
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const [appInfo, setAppInfo] = useState<AppInfo | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const getAppInfo = async () => {
+    try {
+      setLoading(true)
+
+      // 调用 Preload 暴露的 API
+      const info = await window.api.getAppInfo()
+
+      setAppInfo(info)
+    } catch (error) {
+      console.error('获取应用信息失败：', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
+    <div style={{ padding: 40 }}>
+      <h1>Electron IPC Demo</h1>
+
+      <button onClick={getAppInfo} disabled={loading}>
+        {loading ? '获取中...' : '获取应用信息'}
+      </button>
+
+      {appInfo && (
+        <div style={{ marginTop: 24 }}>
+          <h3>主进程返回的数据：</h3>
+
+          <pre>{JSON.stringify(appInfo, null, 2)}</pre>
         </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
+      )}
+    </div>
   )
 }
 

@@ -52,6 +52,16 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
+  // 注册 IPC 处理器：返回应用信息
+  ipcMain.handle('app:get-info', () => {
+    return {
+      appVersion: app.getVersion(),
+      electronVersion: process.versions.electron,
+      nodeVersion: process.versions.node,
+      platform: process.platform
+    }
+  })
+
   createWindow()
 
   app.on('activate', function () {
